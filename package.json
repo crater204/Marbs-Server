@@ -1,0 +1,22 @@
+{
+  "name": "marbs-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crater204/Marbs-Server.git"
+  },
+  "author": "crater204",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/crater204/Marbs-Server/issues"
+  },
+  "homepage": "https://github.com/crater204/Marbs-Server#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
