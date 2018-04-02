@@ -34,7 +34,7 @@ app.listen(port, ()=> {
 // get members
 app.route(basePath).get((req, res) => {
     res.send({
-        'members': teamMembers 
+        members: teamMembers 
     });
 });
 
@@ -45,7 +45,7 @@ app.route(basePath + '/:id').get((req, res) => {
         return id == member.id;
     });
     res.send({
-        'member': filteredMembers[0]
+        member: filteredMembers[0]
     });   
 });
 
@@ -77,9 +77,8 @@ app.route(basePath).post((req, res) => {
     });
 });
 
-// delete user
+// delete member
 app.route(basePath + '/:id').delete((req, res) => {
-    // deletes the team member with the specified id
     teamMembers = teamMembers.filter((member) => {
         return member.id != req.params['id'];
     });
@@ -87,7 +86,16 @@ app.route(basePath + '/:id').delete((req, res) => {
     res.sendStatus(204);
 });
 
+// the list of members whose name contains the substring 'name'
 // TODO: Make sure that the path gets updated in client service 
 app.route(basePath + '/search/:name').get((req, res) => {
-    // the list of users whose name contains the substring 'name'
+    let name = req.params['name'];
+
+    const filteredMembers = teamMembers.filter( (member) => {
+        return member.name.toUpperCase().includes(name.toUpperCase());
+    });
+
+    res.send({
+        members: filteredMembers
+    })
 });
