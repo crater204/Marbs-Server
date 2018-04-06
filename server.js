@@ -13,19 +13,19 @@ const nextIdCollection = 'next-id';
 var mongoDataBase;
 
 let teamMembers = [
-    { id: 11, name: 'Derek Bodi', marblesEarned: 6, datesTakenOff: [
+    {  name: 'Derek Bodi', marblesEarned: 6, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { id: 12, name: 'Nick Angelo', marblesEarned: 5, datesTakenOff: [
+    { name: 'Nick Angelo', marblesEarned: 5, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { id: 13, name: 'Rachael Jenkins', marblesEarned: 4, datesTakenOff: [
+    { name: 'Rachael Jenkins', marblesEarned: 4, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { id: 14, name: 'Sebastian Salomone', marblesEarned: 3, datesTakenOff: [
+    { name: 'Sebastian Salomone', marblesEarned: 3, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { id: 15, name: 'Zach McGuire', marblesEarned: 2, datesTakenOff: [
+    { name: 'Zach McGuire', marblesEarned: 2, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] }
   ];
@@ -37,6 +37,8 @@ MongoClient.connect(url, function(err, db) {
     assert.equal(null, err);
     console.log('Connected to Mongo');
     mongoDataBase = db;
+
+    // reset();
 });
 
 app.listen(port, ()=> {
@@ -47,9 +49,11 @@ function getNextId() {
     return new Promise(
         (resolve, reject) => {
             const collection = mongoDataBase.collection(nextIdCollection);
-            collection.find({}).toArray((err, data) => {
+            collection.find({}).toArray((err1, data) => {
+                assert.equal(err1, null);
                 let nextId = data[0].nextId;
-                collection.update({}, { nextId: nextId + 1 }, (err, data) => {
+                collection.update({}, { nextId: nextId + 1 }, (err2, data) => {
+                    assert.equal(err2, null);
                     resolve( nextId );
                 });      
             });
@@ -71,14 +75,19 @@ app.route(basePath).get((req, res) => {
 // get member by id
 app.route(basePath + '/:id').get((req, res) => {
     const id = parseInt(req.params['id'], 10);
-    console.log(id);
     const collection = mongoDataBase.collection(collectionName);
-    collection.find( { id: id } ).toArray((err, members) => {
+    collection.findOne({ id: id }, (err, member) => {
         assert.equal(err, null);
-        res.send({
-            data: members[0]
-        }); 
-    })
+        if( member != null) {
+            res.send({
+                data: member
+            }); 
+        } else {
+            res.send({
+                data: {}
+            });
+        }
+    });
 });
 
 // Edit member
@@ -87,12 +96,19 @@ app.route(basePath).put((req, res) => {
     let id = parseInt(reqbody.id, 10);
 
     const collection = mongoDataBase.collection(collectionName);
-    collection.update({ id : id},  reqbody, (err, result) => {
-        console.log(err);
+    collection.update({ id : id },  reqbody, (err, result) => {
         assert.equal(err, null);
-        res.send({
-            data: reqbody
-        });
+        let numberModified = result.result.n;
+        if(numberModified > 0) {
+            res.send({
+                data: reqbody
+            });
+        } else {
+            res.send({
+                data: {}
+            })
+        }
+        
     });    
 });
 
@@ -100,12 +116,10 @@ app.route(basePath).put((req, res) => {
 app.route(basePath).post((req, res) => {
     let reqbody = req.body;
     getNextId().then((nextId) => {
-        reqbody.id = nextId;
-        
+        reqbody.id = nextId;        
         var collection = mongoDataBase.collection(collectionName);
         collection.insert(reqbody, function(err, result) {
             assert.equal(err, null);
-
             res.status(201).send({
                 data: reqbody
             });
@@ -115,28 +129,38 @@ app.route(basePath).post((req, res) => {
 
 // delete member
 app.route(basePath + '/:id').delete((req, res) => {
-    let removedUsers;
-    teamMembers = teamMembers.filter((member) => {
-        if (member.id == req.params['id']) {
-            removedUsers = member;
-        }
-        return member.id != req.params['id'];
-    });
-    res.send({
-        data: removedUsers
-    });
+    const id = parseInt(req.params['id'], 10);
+    var collection = mongoDataBase.collection(collectionName);
+    collection.deleteOne({ id: id }, (err, result) => {
+        assert.equal(err, null);
+        res.send({
+            data: {}
+        });
+    });    
 });
 
-// the list of members whose name contains the substring 'name'
-// TODO: Make sure that the path gets updated in client service 
-app.route(basePath + '/search/:name').get((req, res) => {
-    let name = req.params['name'];
-
-    const filteredMembers = teamMembers.filter( (member) => {
-        return member.name.toUpperCase().includes(name.toUpperCase());
+function reset() {
+    console.log('Database Reset');
+    var collection = mongoDataBase.collection(collectionName);
+    collection.deleteMany({}, (err, result) => {
+        assert.equal(err, null);
+        addTeamMember(collection, 0);
     });
+}
 
-    res.send({
-        data: filteredMembers
-    })
-});
+function addTeamMember(collection, currentIndex) {
+    if(currentIndex >= teamMembers.length) {
+        console.log('Reset Finished')
+        return;
+    } else {
+        getNextId().then((nextId) => {
+            
+            let body = teamMembers[currentIndex];
+            body.id = nextId;
+            collection.insert(body, (err, result) => {
+                assert.equal(err, null);
+                addTeamMember(collection, currentIndex + 1);
+            })
+        });
+    }
+}
