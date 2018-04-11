@@ -13,19 +13,19 @@ const nextIdCollection = 'next-id';
 var mongoDataBase;
 
 let teamMembers = [
-    {  name: 'Derek Bodi', marblesEarned: 6, datesTakenOff: [
+    {  name: 'Derek Bodi', marblesEarned: 6, halfDaysBanked: 3, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Nick Angelo', marblesEarned: 5, datesTakenOff: [
+    { name: 'Nick Angelo', marblesEarned: 5, halfDaysBanked: 4, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Rachael Jenkins', marblesEarned: 4, datesTakenOff: [
+    { name: 'Rachael Jenkins', marblesEarned: 4, halfDaysBanked: 1, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Sebastian Salomone', marblesEarned: 3, datesTakenOff: [
+    { name: 'Sebastian Salomone', marblesEarned: 3, halfDaysBanked: 0, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Zach McGuire', marblesEarned: 2, datesTakenOff: [
+    { name: 'Zach McGuire', marblesEarned: 2, halfDaysBanked: 0, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] }
   ];
@@ -64,7 +64,7 @@ function getNextId() {
 // get members
 app.route(basePath).get((req, res) => {
     const collection = mongoDataBase.collection(collectionName);
-    collection.find({}).toArray((err, members) => {
+    collection.find({}, {_id: 0}).toArray((err, members) => {
         assert.equal(err, null);
         res.send({
             data: members
@@ -76,7 +76,7 @@ app.route(basePath).get((req, res) => {
 app.route(basePath + '/:id').get((req, res) => {
     const id = parseInt(req.params['id'], 10);
     const collection = mongoDataBase.collection(collectionName);
-    collection.findOne({ id: id }, (err, member) => {
+    collection.findOne({ id: id }, {_id: 0}, (err, member) => {
         assert.equal(err, null);
         if( member != null) {
             res.send({
@@ -94,9 +94,8 @@ app.route(basePath + '/:id').get((req, res) => {
 app.route(basePath).put((req, res) => {
     let reqbody = req.body;
     let id = parseInt(reqbody.id, 10);
-
     const collection = mongoDataBase.collection(collectionName);
-    collection.update({ id : id },  reqbody, (err, result) => {
+    collection.update({ id : id }, reqbody, (err, result) => {
         assert.equal(err, null);
         let numberModified = result.result.n;
         if(numberModified > 0) {
