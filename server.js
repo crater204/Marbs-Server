@@ -78,13 +78,14 @@ app.route(basePath + '/:id').get((req, res) => {
     const collection = mongoDataBase.collection(collectionName);
     collection.findOne({ id: id }, {_id: 0}, (err, member) => {
         assert.equal(err, null);
-        if( member != null) {
+        if( member !== null) {
             res.send({
                 data: member
             }); 
         } else {
-            res.send({
-                data: {}
+            res.status(404).send({
+                data: {},
+                error: "Supplied ID doesn't match a user in the database"
             });
         }
     });
@@ -97,15 +98,15 @@ app.route(basePath).put((req, res) => {
     const collection = mongoDataBase.collection(collectionName);
     collection.update({ id : id }, reqbody, (err, result) => {
         assert.equal(err, null);
-        let numberModified = result.result.n;
-        if(numberModified > 0) {
+        if(result.result.n > 0) {
             res.send({
                 data: reqbody
             });
         } else {
-            res.send({
-                data: {}
-            })
+            res.status(404).send({
+                data: {},
+                error: "Supplied ID doesn't match a user in the database"
+            });
         }
         
     });    
@@ -114,16 +115,23 @@ app.route(basePath).put((req, res) => {
 // add member
 app.route(basePath).post((req, res) => {
     let reqbody = req.body;
-    getNextId().then((nextId) => {
-        reqbody.id = nextId;        
-        var collection = mongoDataBase.collection(collectionName);
-        collection.insert(reqbody, function(err, result) {
-            assert.equal(err, null);
-            res.status(201).send({
-                data: reqbody
+    if (verifyBodyIsCorrectForm(reqbody)) {
+        getNextId().then((nextId) => {
+            reqbody.id = nextId;        
+            var collection = mongoDataBase.collection(collectionName);
+            collection.insert(reqbody, function(err, result) {
+                assert.equal(err, null);
+                res.status(201).send({
+                    data: reqbody
+                });
             });
+        });    
+    } else {
+        res.status(400).send({
+            data: {},
+            error: "Body didn't match the expected form"
         });
-    });   
+    }       
 });
 
 // delete member
@@ -132,9 +140,16 @@ app.route(basePath + '/:id').delete((req, res) => {
     var collection = mongoDataBase.collection(collectionName);
     collection.deleteOne({ id: id }, (err, result) => {
         assert.equal(err, null);
-        res.send({
-            data: {}
-        });
+        if (result.result.n > 0) {
+            res.send({
+                data: {}
+            });
+        } else {
+            res.status(404).send({
+                data: {},
+                error: "Supplied ID doesn't match a user in the database"
+            })
+        }       
     });    
 });
 
@@ -162,4 +177,25 @@ function addTeamMember(collection, currentIndex) {
             })
         });
     }
+}
+
+function verifyBodyIsCorrectForm(body) {
+    /*
+        console.log(body.name !== null);
+        console.log(body.marblesEarned !== null);
+        console.log(body.halfDaysBanked !== null);
+        console.log(body.datesTakenOff != null);
+        console.log(typeof body.name == "string");
+        console.log(typeof body.marblesEarned == "number");
+        console.log(typeof body.halfDaysBanked == "number");
+        console.log(typeof body.datesTakenOff == "object");
+    */
+    return body.name !== null && 
+        body.marblesEarned !== null && 
+        body.halfDaysBanked !== null && 
+        body.datesTakenOff != null && 
+        typeof body.name == "string" && 
+        typeof body.marblesEarned == "number" && 
+        typeof body.halfDaysBanked == "number" && 
+        typeof body.datesTakenOff == "objct";
 }
