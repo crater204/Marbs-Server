@@ -198,11 +198,10 @@ addTeamMember = (collection, currentIndex) => {
 }
 
 verifyBodyIsCorrectForm = body => {
-  function verifyBodyIsCorrectForm(body) {
-      return body.name !== null && 
-          body.halfDaysBanked !== null && 
-          body.datesTakenOff != null && 
-          typeof body.name == "string" && 
-          typeof body.halfDaysBanked == "number" && 
-          typeof body.datesTakenOff == "object";
+    return body.name !== null && 
+        body.halfDaysBanked !== null && 
+        body.datesTakenOff != null && 
+        typeof body.name == "string" && 
+        typeof body.halfDaysBanked == "number" && 
+        typeof body.datesTakenOff == "object";
 }
