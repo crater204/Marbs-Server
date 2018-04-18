@@ -10,6 +10,7 @@ const basePath = '/api/teamMembers';
 const url = 'mongodb://localhost:27017/marbs';
 const collectionName = 'marbs';
 const nextIdCollection = 'next-id';
+const loginCollection = 'login';
 var mongoDataBase;
 
 let teamMembers = [
@@ -38,11 +39,6 @@ MongoClient.connect(url, (err, db) => {
     console.log('Connected to Mongo');
     mongoDataBase = db;
 
-
-    var collection = mongoDataBase.collection(nextIdCollection);
-        collection.insert({nextId: 1}, (err, result) => {
-        console.log('result');
-    });
     // reset();
 });
 
@@ -125,11 +121,9 @@ app.route(basePath).post((req, res) => {
     console.log(reqbody.datesTakenOff);
 
     if(reqbody.halfDaysBanked === undefined) {
-        console.log('Set HalfDays');
         reqbody.halfDaysBanked = 0;
     }
     if(reqbody.datesTakenOff === undefined) {
-        console.log('Set DatesTakenOff');
         reqbody.datesTakenOff = [];
     }
 
@@ -171,6 +165,26 @@ app.route(basePath + '/:id').delete((req, res) => {
     });    
 });
 
+//login
+app.route(basePath + '/login').post((req,res) => {
+    let username = req.body.username;
+    let password = req.body.password;
+    console.log(username);
+
+    let collection = mongoDataBase.collection(loginCollection);
+    collection.findOne({username: username}, (err, result) => {
+        if (result === null) {
+            res.status(401).send({data: false, error: "Username is invalid"}); 
+            return;
+        }
+        if(result.password === password) {
+            res.send({data: true});
+        } else {
+            res.status(401).send({data:false, error: "Password is invalid"});
+        }
+    });
+});
+
 reset = () => {
     console.log('Database Reset');
     var collection = mongoDataBase.collection(collectionName);
@@ -198,6 +212,16 @@ addTeamMember = (collection, currentIndex) => {
 }
 
 verifyBodyIsCorrectForm = body => {
+
+    /*
+        console.log(body.name !== null);
+        console.log(body.halfDaysBanked !== null);
+        console.log(body.datesTakenOff != null);
+        console.log(typeof body.name == "string");        
+        console.log(typeof body.halfDaysBanked == "number");
+        console.log(typeof body.datesTakenOff == "object");
+    */
+
     return body.name !== null && 
         body.halfDaysBanked !== null && 
         body.datesTakenOff != null && 
