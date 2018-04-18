@@ -5,7 +5,7 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const assert = require('assert');
 const app = express();
-const port = 9876;
+const port = 9872;
 const basePath = '/api/teamMembers';
 const url = 'mongodb://localhost:27017/marbs';
 const collectionName = 'marbs';
@@ -33,19 +33,23 @@ let teamMembers = [
 app.use(cors());
 app.use(bodyParser.json());
 
-MongoClient.connect(url, function(err, db) {
+MongoClient.connect(url, (err, db) => {
     assert.equal(null, err);
     console.log('Connected to Mongo');
     mongoDataBase = db;
 
+    var collection = mongoDataBase.collection(nextIdCollection);
+        collection.insert({nextId: 1}, (err, result) => {
+        console.log('result');
+    });
     // reset();
 });
 
-app.listen(port, ()=> {
+app.listen(port, () => {
     console.log('Server Started');
 });
 
-function getNextId() {
+getNextId = () => {
     return new Promise(
         (resolve, reject) => {
             const collection = mongoDataBase.collection(nextIdCollection);
@@ -70,6 +74,7 @@ app.route(basePath).get((req, res) => {
             data: members
         });
     });
+    console.log('members retrieved');
 });
 
 // get member by id
@@ -91,12 +96,12 @@ app.route(basePath + '/:id').get((req, res) => {
     });
 });
 
-// Edit member
+// edit member
 app.route(basePath).put((req, res) => {
     let reqbody = req.body;
     let id = parseInt(reqbody.id, 10);
     const collection = mongoDataBase.collection(collectionName);
-    collection.update({ id : id }, reqbody, (err, result) => {
+    collection.update({ id }, reqbody, (err, result) => {
         assert.equal(err, null);
         if(result.result.n > 0) {
             res.send({
@@ -119,7 +124,7 @@ app.route(basePath).post((req, res) => {
         getNextId().then((nextId) => {
             reqbody.id = nextId;        
             var collection = mongoDataBase.collection(collectionName);
-            collection.insert(reqbody, function(err, result) {
+            collection.insert(reqbody, (err, result) => {
                 assert.equal(err, null);
                 res.status(201).send({
                     data: reqbody
@@ -138,7 +143,7 @@ app.route(basePath).post((req, res) => {
 app.route(basePath + '/:id').delete((req, res) => {
     const id = parseInt(req.params['id'], 10);
     var collection = mongoDataBase.collection(collectionName);
-    collection.deleteOne({ id: id }, (err, result) => {
+    collection.deleteOne({ id }, (err, result) => {
         assert.equal(err, null);
         if (result.result.n > 0) {
             res.send({
@@ -153,7 +158,7 @@ app.route(basePath + '/:id').delete((req, res) => {
     });    
 });
 
-function reset() {
+reset = () => {
     console.log('Database Reset');
     var collection = mongoDataBase.collection(collectionName);
     collection.deleteMany({}, (err, result) => {
@@ -162,7 +167,7 @@ function reset() {
     });
 }
 
-function addTeamMember(collection, currentIndex) {
+addTeamMember = (collection, currentIndex) => {
     if(currentIndex >= teamMembers.length) {
         console.log('Reset Finished')
         return;
@@ -179,17 +184,7 @@ function addTeamMember(collection, currentIndex) {
     }
 }
 
-function verifyBodyIsCorrectForm(body) {
-    /*
-        console.log(body.name !== null);
-        console.log(body.marblesEarned !== null);
-        console.log(body.halfDaysBanked !== null);
-        console.log(body.datesTakenOff != null);
-        console.log(typeof body.name == "string");
-        console.log(typeof body.marblesEarned == "number");
-        console.log(typeof body.halfDaysBanked == "number");
-        console.log(typeof body.datesTakenOff == "object");
-    */
+verifyBodyIsCorrectForm = body => {
     return body.name !== null && 
         body.marblesEarned !== null && 
         body.halfDaysBanked !== null && 
