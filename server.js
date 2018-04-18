@@ -13,19 +13,19 @@ const nextIdCollection = 'next-id';
 var mongoDataBase;
 
 let teamMembers = [
-    {  name: 'Derek Bodi', marblesEarned: 6, halfDaysBanked: 3, datesTakenOff: [
+    {  name: 'Derek Bodi', halfDaysBanked: 3, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Nick Angelo', marblesEarned: 5, halfDaysBanked: 4, datesTakenOff: [
+    { name: 'Nick Angelo', halfDaysBanked: 4, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Rachael Jenkins', marblesEarned: 4, halfDaysBanked: 1, datesTakenOff: [
+    { name: 'Rachael Jenkins', halfDaysBanked: 1, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Sebastian Salomone', marblesEarned: 3, halfDaysBanked: 0, datesTakenOff: [
+    { name: 'Sebastian Salomone', halfDaysBanked: 0, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] },
-    { name: 'Zach McGuire', marblesEarned: 2, halfDaysBanked: 0, datesTakenOff: [
+    { name: 'Zach McGuire', halfDaysBanked: 0, datesTakenOff: [
       '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
     ] }
   ];
@@ -38,7 +38,7 @@ MongoClient.connect(url, function(err, db) {
     console.log('Connected to Mongo');
     mongoDataBase = db;
 
-    // reset();
+     reset();
 });
 
 app.listen(port, ()=> {
@@ -50,6 +50,7 @@ function getNextId() {
         (resolve, reject) => {
             const collection = mongoDataBase.collection(nextIdCollection);
             collection.find({}).toArray((err1, data) => {
+                console.log(data);
                 assert.equal(err1, null);
                 let nextId = data[0].nextId;
                 collection.update({}, { nextId: nextId + 1 }, (err2, data) => {
@@ -107,14 +108,25 @@ app.route(basePath).put((req, res) => {
                 data: {},
                 error: "Supplied ID doesn't match a user in the database"
             });
-        }
-        
+        }       
     });    
 });
 
 // add member
 app.route(basePath).post((req, res) => {
     let reqbody = req.body;
+    console.log(reqbody.halfDaysBanked);
+    console.log(reqbody.datesTakenOff);
+
+    if(reqbody.halfDaysBanked === undefined) {
+        console.log('Set HalfDays');
+        reqbody.halfDaysBanked = 0;
+    }
+    if(reqbody.datesTakenOff === undefined) {
+        console.log('Set DatesTakenOff');
+        reqbody.datesTakenOff = [];
+    }
+
     if (verifyBodyIsCorrectForm(reqbody)) {
         getNextId().then((nextId) => {
             reqbody.id = nextId;        
@@ -164,7 +176,7 @@ function reset() {
 
 function addTeamMember(collection, currentIndex) {
     if(currentIndex >= teamMembers.length) {
-        console.log('Reset Finished')
+        console.log('Reset Finished');
         return;
     } else {
         getNextId().then((nextId) => {
@@ -180,22 +192,18 @@ function addTeamMember(collection, currentIndex) {
 }
 
 function verifyBodyIsCorrectForm(body) {
-    /*
+    
         console.log(body.name !== null);
-        console.log(body.marblesEarned !== null);
         console.log(body.halfDaysBanked !== null);
         console.log(body.datesTakenOff != null);
-        console.log(typeof body.name == "string");
-        console.log(typeof body.marblesEarned == "number");
+        console.log(typeof body.name == "string");        
         console.log(typeof body.halfDaysBanked == "number");
         console.log(typeof body.datesTakenOff == "object");
-    */
+    
     return body.name !== null && 
-        body.marblesEarned !== null && 
         body.halfDaysBanked !== null && 
         body.datesTakenOff != null && 
         typeof body.name == "string" && 
-        typeof body.marblesEarned == "number" && 
         typeof body.halfDaysBanked == "number" && 
-        typeof body.datesTakenOff == "objct";
+        typeof body.datesTakenOff == "object";
 }
