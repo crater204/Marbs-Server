@@ -81,7 +81,7 @@ app.route(basePath).get((req, res) => {
 app.route(basePath + '/:id').get((req, res) => {
     const id = parseInt(req.params['id'], 10);
     const collection = mongoDataBase.collection(collectionName);
-    collection.findOne({ id: id }, {_id: 0}, (err, member) => {
+    collection.findOne({ id }, {_id: 0}, (err, member) => {
         assert.equal(err, null);
         if( member !== null) {
             res.send({
@@ -134,7 +134,7 @@ app.route(basePath).post((req, res) => {
     } else {
         res.status(400).send({
             data: {},
-            error: "Body didn't match the expected form"
+            error: `Body didn't match the expected form. Req: ${req}`
         });
     }       
 });
