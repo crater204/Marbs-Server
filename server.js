@@ -38,7 +38,7 @@ MongoClient.connect(url, (err, db) => {
     assert.equal(null, err);
     console.log('Connected to Mongo');
     mongoDataBase = db;
-
+    
     // reset();
 });
 
@@ -221,7 +221,6 @@ verifyBodyIsCorrectForm = body => {
         console.log(typeof body.halfDaysBanked == "number");
         console.log(typeof body.datesTakenOff == "object");
     */
-
     return body.name !== null && 
         body.halfDaysBanked !== null && 
         body.datesTakenOff != null && 
