@@ -5,7 +5,7 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const assert = require('assert');
 const app = express();
-const port = 9872;
+const port = 9876;
 const basePath = '/api/teamMembers';
 const url = 'mongodb://localhost:27017/marbs';
 const collectionName = 'marbs';
@@ -38,8 +38,9 @@ MongoClient.connect(url, (err, db) => {
     assert.equal(null, err);
     console.log('Connected to Mongo');
     mongoDataBase = db;
-    
-    // reset();
+
+    var col = mongoDataBase.collection(loginCollection);
+        // reset();
 });
 
 app.listen(port, () => {
@@ -53,11 +54,11 @@ getNextId = () => {
             collection.find({}).toArray((err1, data) => {
                 console.log(data);
                 assert.equal(err1, null);
-                let nextId = data[0].nextId;
+                let nextId = data[0].nextId;    
                 collection.update({}, { nextId: nextId + 1 }, (err2, data) => {
                     assert.equal(err2, null);
                     resolve( nextId );
-                });      
+                })
             });
         }
     );
@@ -129,6 +130,7 @@ app.route(basePath).post((req, res) => {
 
     if (verifyBodyIsCorrectForm(reqbody)) {
         getNextId().then((nextId) => {
+            console.log('Got ID');
             reqbody.id = nextId;        
             var collection = mongoDataBase.collection(collectionName);
             collection.insert(reqbody, (err, result) => {
@@ -169,18 +171,24 @@ app.route(basePath + '/:id').delete((req, res) => {
 app.route(basePath + '/login').post((req,res) => {
     let username = req.body.username;
     let password = req.body.password;
-    console.log(username);
+    checkValidCredentials(username, password).then(() => {
+        res.send({data: true});
+    }, error => {
+        res.status(401).send({ data: false , error });
+    });  
+});
 
+checkValidCredentials = (username, password) => new Promise((resolve, reject) => {
     let collection = mongoDataBase.collection(loginCollection);
     collection.findOne({username: username}, (err, result) => {
         if (result === null) {
-            res.status(401).send({data: false, error: "Username is invalid"}); 
+            reject("username is invalid");
             return;
         }
         if(result.password === password) {
-            res.send({data: true});
+            resolve();
         } else {
-            res.status(401).send({data:false, error: "Password is invalid"});
+            reject("password is invalid");
         }
     });
 });
