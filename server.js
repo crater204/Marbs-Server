@@ -65,38 +65,31 @@ getNextId = () => {
 }
 
 // get members
-app.route(basePath).get((req, res) => {
+app.route(basePath).post((req, res) => {
+    checkValidCredentials(req.body.username, req.body.password).then(() => {
+    let filterParams = {};
+    if (req.body.id !== undefined) {
+        filterParams = { "id" : parseInt(req.body.id, 10) };
+    }
+    console.log(filterParams);
     const collection = mongoDataBase.collection(collectionName);
-    collection.find({}, {_id: 0}).toArray((err, members) => {
+    collection.find(filterParams, {_id: 0}).toArray((err, members) => {
         assert.equal(err, null);
         res.send({
             data: members
         });
     });
     console.log('members retrieved');
-});
 
-// get member by id
-app.route(basePath + '/:id').get((req, res) => {
-    const id = parseInt(req.params['id'], 10);
-    const collection = mongoDataBase.collection(collectionName);
-    collection.findOne({ id }, {_id: 0}, (err, member) => {
-        assert.equal(err, null);
-        if( member !== null) {
-            res.send({
-                data: member
-            }); 
-        } else {
-            res.status(404).send({
-                data: {},
-                error: "Supplied ID doesn't match a user in the database"
-            });
-        }
-    });
+    }, error => {
+        res.status(401).send({ data: {} , error });
+    }); 
 });
 
 // edit member
 app.route(basePath).put((req, res) => {
+    checkValidCredentials(req.body.username, req.body.password).then(() => {
+
     let reqbody = req.body;
     let id = parseInt(reqbody.id, 10);
     const collection = mongoDataBase.collection(collectionName);
@@ -113,10 +106,16 @@ app.route(basePath).put((req, res) => {
             });
         }       
     });    
+
+    }, error => {
+        res.status(401).send({ data: {} , error });
+    }); 
 });
 
 // add member
-app.route(basePath).post((req, res) => {
+app.route(basePath + "/create").post((req, res) => {
+    checkValidCredentials(req.body.username, req.body.password).then(() => {
+
     let reqbody = req.body;
     console.log(reqbody.halfDaysBanked);
     console.log(reqbody.datesTakenOff);
@@ -145,12 +144,18 @@ app.route(basePath).post((req, res) => {
             data: {},
             error: `Body didn't match the expected form. Req: ${req}`
         });
-    }       
+    }     
+    
+    }, error => {
+        res.status(401).send({ data: {} , error });
+    }); 
 });
 
 // delete member
-app.route(basePath + '/:id').delete((req, res) => {
-    const id = parseInt(req.params['id'], 10);
+app.route(basePath).delete((req, res) => {
+    checkValidCredentials(req.body.username, req.body.password).then(() => {
+
+    const id = parseInt(req.body.id, 10);
     var collection = mongoDataBase.collection(collectionName);
     collection.deleteOne({ id }, (err, result) => {
         assert.equal(err, null);
@@ -165,6 +170,10 @@ app.route(basePath + '/:id').delete((req, res) => {
             })
         }       
     });    
+
+    }, error => {
+        res.status(401).send({ data: {} , error });
+    }); 
 });
 
 //login
@@ -229,9 +238,9 @@ verifyBodyIsCorrectForm = body => {
         console.log(typeof body.halfDaysBanked == "number");
         console.log(typeof body.datesTakenOff == "object");
     */
-    return body.name !== null && 
-        body.halfDaysBanked !== null && 
-        body.datesTakenOff != null && 
+    return body.name !== undefined && 
+        body.halfDaysBanked !== undefined && 
+        body.datesTakenOff != undefined && 
         typeof body.name == "string" && 
         typeof body.halfDaysBanked == "number" && 
         typeof body.datesTakenOff == "object";
