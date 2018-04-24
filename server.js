@@ -40,7 +40,7 @@ MongoClient.connect(url, (err, db) => {
     mongoDataBase = db;
 
     var col = mongoDataBase.collection(loginCollection);
-        // reset();
+    //     reset();
 });
 
 app.listen(port, () => {
@@ -52,7 +52,6 @@ getNextId = () => {
         (resolve, reject) => {
             const collection = mongoDataBase.collection(nextIdCollection);
             collection.find({}).toArray((err1, data) => {
-                console.log(data);
                 assert.equal(err1, null);
                 let nextId = data[0].nextId;    
                 collection.update({}, { nextId: nextId + 1 }, (err2, data) => {
@@ -204,11 +203,33 @@ checkValidCredentials = (username, password) => new Promise((resolve, reject) =>
 
 reset = () => {
     console.log('Database Reset');
-    var collection = mongoDataBase.collection(collectionName);
-    collection.deleteMany({}, (err, result) => {
-        assert.equal(err, null);
-        addTeamMember(collection, 0);
-    });
+    // resets the id collection
+    console.log('   Reseting Ids');
+    var idCol = mongoDataBase.collection(nextIdCollection); 
+    idCol.deleteMany({}, (idDeleteError, idDeleteResult) => {
+        assert.equal(idDeleteError, null);
+        idCol.insert({nextId: 1}, (idAddError, idAddResult) => {
+            assert.equal(idAddError, null);
+
+            // resets the login collection
+            console.log('   Reseting Login credentials');
+            var loginCol = mongoDataBase.collection(loginCollection);
+            loginCol.deleteMany({}, (loginDeleteError, loginDeleteResult) => {
+                assert.equal(loginDeleteError, null);
+                loginCol.insert({username: 'manager', password: 'password'}, (loginAddError, loginAddResult) => {
+                    assert.equal(loginAddError, null);
+
+                    // resets the user database
+                    console.log('   Reseting Users');
+                    var userCol = mongoDataBase.collection(collectionName);
+                    userCol.deleteMany({}, (userDeleteError, userDeleteResult) => {
+                        assert.equal(userDeleteError, null);
+                        addTeamMember(userCol, 0);
+                    });
+                });
+            });
+        });        
+    });    
 }
 
 addTeamMember = (collection, currentIndex) => {
