@@ -40,7 +40,7 @@ MongoClient.connect(url, (err, db) => {
     mongoDataBase = db;
 
     var col = mongoDataBase.collection(loginCollection);
-    //     reset();
+    reset();
 });
 
 app.listen(port, () => {
@@ -151,7 +151,7 @@ app.route(basePath + "/create").post((req, res) => {
 });
 
 // delete member
-app.route(basePath).delete((req, res) => {
+app.route(basePath + "/delete").post((req, res) => {
     checkValidCredentials(req.body.username, req.body.password).then(() => {
 
     const id = parseInt(req.body.id, 10);
