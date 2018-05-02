@@ -40,7 +40,7 @@ MongoClient.connect(url, (err, db) => {
     mongoDataBase = db;
 
     var col = mongoDataBase.collection(loginCollection);
-    reset();
+  //  reset();
 });
 
 app.listen(port, () => {
@@ -201,6 +201,11 @@ checkValidCredentials = (username, password) => new Promise((resolve, reject) =>
     });
 });
 
+// IF YOU UN COMMENT THIS YOU ARE RESPONSIBLE FOR MAKING SURE IT IS RE COMMENTED OUT BEFORE YOU PUSH
+
+/* 
+
+
 reset = () => {
     console.log('Database Reset');
     // resets the id collection
@@ -232,6 +237,8 @@ reset = () => {
     });    
 }
 
+
+*/
 addTeamMember = (collection, currentIndex) => {
     if(currentIndex >= teamMembers.length) {
         console.log('Reset Finished');
