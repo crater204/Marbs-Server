@@ -15,19 +15,29 @@ var mongoDataBase;
 
 let teamMembers = [
     {  name: 'Derek Bodi', halfDaysBanked: 3, datesTakenOff: [
-      '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
+      { selectedDate: '2017-03-16',  isHalfDay: true} ,
+      { selectedDate: '2017-02-13',  isHalfDay: false} ,
+      { selectedDate: '2018-01-03',  isHalfDay: true} 
     ] },
     { name: 'Nick Angelo', halfDaysBanked: 4, datesTakenOff: [
-      '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
+        { selectedDate: '2017-03-16',  isHalfDay: true} ,
+        { selectedDate: '2017-02-13',  isHalfDay: false} ,
+        { selectedDate: '2018-01-03',  isHalfDay: true}
     ] },
     { name: 'Rachael Jenkins', halfDaysBanked: 1, datesTakenOff: [
-      '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
+        { selectedDate: '2017-03-16',  isHalfDay: true} ,
+        { selectedDate: '2017-02-13',  isHalfDay: false} ,
+        { selectedDate: '2018-01-03',  isHalfDay: true}
     ] },
     { name: 'Sebastian Salomone', halfDaysBanked: 0, datesTakenOff: [
-      '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
+        { selectedDate: '2017-03-16',  isHalfDay: true} ,
+        { selectedDate: '2017-02-13',  isHalfDay: false} ,
+        { selectedDate: '2018-01-03',  isHalfDay: true}
     ] },
     { name: 'Zach McGuire', halfDaysBanked: 0, datesTakenOff: [
-      '2017-03-16' , '2017-02-13', '2018-01-03', '2017-07-03', '2017-12-23'
+        { selectedDate: '2017-03-16',  isHalfDay: true} ,
+        { selectedDate: '2017-02-13',  isHalfDay: false} ,
+        { selectedDate: '2018-01-03',  isHalfDay: true}
     ] }
   ];
 
@@ -40,7 +50,7 @@ MongoClient.connect(url, (err, db) => {
     mongoDataBase = db;
 
     var col = mongoDataBase.collection(loginCollection);
-  //  reset();
+    // reset();
 });
 
 app.listen(port, () => {
@@ -202,9 +212,8 @@ checkValidCredentials = (username, password) => new Promise((resolve, reject) =>
 });
 
 // IF YOU UN COMMENT THIS YOU ARE RESPONSIBLE FOR MAKING SURE IT IS RE COMMENTED OUT BEFORE YOU PUSH
-
-/* 
-
+ 
+/*
 
 reset = () => {
     console.log('Database Reset');
@@ -237,8 +246,8 @@ reset = () => {
     });    
 }
 
-
 */
+
 addTeamMember = (collection, currentIndex) => {
     if(currentIndex >= teamMembers.length) {
         console.log('Reset Finished');
@@ -257,15 +266,6 @@ addTeamMember = (collection, currentIndex) => {
 }
 
 verifyBodyIsCorrectForm = body => {
-
-    /*
-        console.log(body.name !== null);
-        console.log(body.halfDaysBanked !== null);
-        console.log(body.datesTakenOff != null);
-        console.log(typeof body.name == "string");        
-        console.log(typeof body.halfDaysBanked == "number");
-        console.log(typeof body.datesTakenOff == "object");
-    */
     return body.name !== undefined && 
         body.halfDaysBanked !== undefined && 
         body.datesTakenOff != undefined && 
