@@ -41,6 +41,36 @@ let teamMembers = [
     ] }
   ];
 
+/*
+ let teamMembers = [
+    {  name: 'Derek Bodi', halfDaysBanked: 3, datesTakenOff: [
+       '2017-03-16',
+       '2017-02-13',
+       '2018-01-03' 
+    ] },
+    { name: 'Nick Angelo', halfDaysBanked: 4, datesTakenOff: [
+        '2017-03-16',
+       '2017-02-13',
+       '2018-01-03'
+    ] },
+    { name: 'Rachael Jenkins', halfDaysBanked: 1, datesTakenOff: [
+        '2017-03-16',
+       '2017-02-13',
+       '2018-01-03'
+    ] },
+    { name: 'Sebastian Salomone', halfDaysBanked: 0, datesTakenOff: [
+        '2017-03-16',
+       '2017-02-13',
+       '2018-01-03'
+    ] },
+    { name: 'Zach McGuire', halfDaysBanked: 0, datesTakenOff: [
+        '2017-03-16',
+       '2017-02-13',
+       '2018-01-03'
+    ] }
+  ];  
+*/
+
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -50,7 +80,36 @@ MongoClient.connect(url, (err, db) => {
     mongoDataBase = db;
 
     var col = mongoDataBase.collection(loginCollection);
-    // reset();
+  //   reset();
+
+/*
+// CODE TO CONNVERT THE DATA BASE TO TRANSITION OBEJECTS INSTEAD OF DATES
+    const collection = mongoDataBase.collection(collectionName);
+    collection.find().forEach( (user) => {
+        const dates = user.datesTakenOff;
+
+        const newDates = [];
+        for( let i = 0; i < dates.length; i++) {
+            newDates[i] = {
+                "selectedDate": dates[i],
+                "isHalfDay": true
+            }
+        }
+
+  //      console.log(newDates);
+
+
+        collection.update({_id: user._id}, {
+            $set: {
+                datesTakenOff: newDates
+            }
+        });
+        
+
+    });
+// END OF CODE TO CONVERT DATES
+*/
+
 });
 
 app.listen(port, () => {
@@ -211,7 +270,7 @@ checkValidCredentials = (username, password) => new Promise((resolve, reject) =>
     });
 });
 
-// IF YOU UN COMMENT THIS YOU ARE RESPONSIBLE FOR MAKING SURE IT IS RE COMMENTED OUT BEFORE YOU PUSH
+// IF YOU UN COMMENT THIS YOU ARE RESPONSIBLE FOR MAKING SURE IT IS RE COMMENTED BEFORE YOU PUSH
  
 /*
 
@@ -248,6 +307,7 @@ reset = () => {
 
 */
 
+// A recursive function used by the reset function
 addTeamMember = (collection, currentIndex) => {
     if(currentIndex >= teamMembers.length) {
         console.log('Reset Finished');
